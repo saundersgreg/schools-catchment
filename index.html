@@ -3,267 +3,364 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Richmond Schools — Catchment Zones</title>
+<title>Richmond & Kingston Schools — Catchment & Performance</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
-  html, body { margin: 0; padding: 0; height: 100%; font-family: Arial, sans-serif; }
-  #map { width: 100%; height: 100vh; }
+  html, body { margin:0; padding:0; height:100%; font-family:Arial,sans-serif; }
+  #map { width:100%; height:100vh; }
 
-  #legend {
-    position: fixed;
-    top: 12px;
-    left: 12px;
-    z-index: 9999;
-    background: white;
-    border-radius: 8px;
-    padding: 14px 16px;
-    box-shadow: 0 2px 14px rgba(0,0,0,0.2);
-    font-size: 12px;
-    line-height: 1.85;
-    min-width: 230px;
-    max-width: 250px;
-    border: 1px solid #ddd;
+  #panel {
+    position:fixed; bottom:12px; left:12px; z-index:9999;
+    background:white; border-radius:10px;
+    box-shadow:0 2px 16px rgba(0,0,0,0.2); border:1px solid #ddd;
+    width:620px; max-width:calc(100vw - 24px);
+    max-height:52vh; display:flex; flex-direction:column;
   }
-  #legend h2 {
-    margin: 0 0 10px;
-    font-size: 13px;
-    font-weight: bold;
-    border-bottom: 2px solid #333;
-    padding-bottom: 6px;
+  #panel-header {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:9px 13px 0; flex-shrink:0; border-bottom:2px solid #e0e0e0;
   }
-  .section-title {
-    font-size: 11px;
-    font-weight: bold;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: #555;
-    margin: 8px 0 4px;
+  .tab-bar { display:flex; gap:2px; }
+  .tab-btn {
+    font-size:11px; font-weight:700; padding:5px 12px 7px;
+    border:none; background:none; cursor:pointer; color:#999;
+    border-bottom:2px solid transparent; margin-bottom:-2px;
+    border-radius:4px 4px 0 0;
   }
-  .row { display: flex; align-items: center; gap: 8px; margin-bottom: 2px; }
-  .dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; border: 2px solid #fff; box-shadow: 0 0 0 1.5px #888; }
-  .swatch { flex-shrink: 0; width: 24px; height: 4px; border-radius: 2px; }
-  .swatch-dashed { flex-shrink: 0; width: 24px; height: 0; border-top: 2.5px dashed; border-radius: 2px; }
+  .tab-btn:hover { color:#444; }
+  .tab-btn.active { color:#1565c0; border-bottom-color:#1565c0; }
+  #panel-hide {
+    font-size:10px; background:#f0f0f0; border:1px solid #ccc;
+    border-radius:4px; padding:2px 8px; cursor:pointer; color:#555; margin-bottom:4px;
+  }
+  #panel-hide:hover { background:#e0e0e0; }
+  #panel-body { overflow-y:auto; overflow-x:auto; flex:1; padding:10px 13px 12px; }
+  .tab-content { display:none; }
+  .tab-content.active { display:block; }
 
-  /* Grey Court table */
-  #gc-table {
-    position: fixed;
-    bottom: 12px;
-    right: 12px;
-    z-index: 9999;
-    background: white;
-    border-radius: 8px;
-    padding: 12px 14px;
-    box-shadow: 0 2px 14px rgba(0,0,0,0.2);
-    font-size: 12px;
-    border: 1px solid #ddd;
-    min-width: 200px;
-  }
-  #gc-table h3 {
-    margin: 0 0 8px;
-    font-size: 12px;
-    font-weight: bold;
-    color: #1b5e20;
-    border-bottom: 2px solid #1b5e20;
-    padding-bottom: 5px;
-  }
-  #gc-table table { border-collapse: collapse; width: 100%; }
-  #gc-table th { text-align: left; font-size: 11px; color: #666; padding: 2px 6px; }
-  #gc-table td { padding: 3px 6px; font-size: 12px; }
-  #gc-table tr:nth-child(even) { background: #f5f5f5; }
-  .bar-cell { width: 80px; }
-  .bar-bg { background: #e8f5e9; border-radius: 3px; height: 12px; overflow: hidden; }
-  .bar-fill { background: #43a047; height: 100%; border-radius: 3px; }
+  /* Catchment tab */
+  .catch-school { margin-bottom:12px; }
+  .catch-school:last-child { margin-bottom:0; }
+  .catch-title { font-size:10.5px; font-weight:700; color:#333; margin-bottom:4px; display:flex; align-items:center; gap:6px; }
+  .cdot-lg { display:inline-block; width:11px; height:11px; border-radius:50%; border:2px solid #fff; box-shadow:0 0 0 1.5px #888; flex-shrink:0; }
+  .catch-table { width:100%; border-collapse:collapse; font-size:10px; }
+  .catch-table th { text-align:left; color:#999; font-weight:600; padding:1px 6px 2px; font-size:9px; text-transform:uppercase; }
+  .catch-table td { padding:2px 6px; border-bottom:1px solid #f5f5f5; color:#333; }
+  .catch-table tr:last-child td { border-bottom:none; }
+  .swatch { display:inline-block; width:14px; height:4px; border-radius:2px; vertical-align:middle; margin-right:3px; }
+  .swatch-d { display:inline-block; width:14px; height:0; border-top:2px dashed; vertical-align:middle; margin-right:3px; }
+  .catch-note { font-size:9px; color:#aaa; margin-top:3px; font-style:italic; line-height:1.4; }
 
-  #status {
-    position: fixed;
-    bottom: 12px;
-    left: 12px;
-    z-index: 9999;
-    background: white;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    padding: 7px 12px;
-    font-size: 11px;
-    color: #555;
-    box-shadow: 0 1px 6px rgba(0,0,0,0.12);
-  }
+  /* Academic tab — performance table */
+  .perf-table { border-collapse:collapse; width:100%; }
+  .perf-table th { text-align:center; font-size:9.5px; color:#666; padding:3px 7px 4px; background:#f5f5f5; border-bottom:1.5px solid #ddd; white-space:nowrap; }
+  .perf-table th:first-child { text-align:left; }
+  .perf-table td { padding:4px 7px; font-size:10.5px; border-bottom:1px solid #f0f0f0; text-align:center; vertical-align:middle; }
+  .perf-table td:first-child { text-align:left; }
+  .school-name { font-weight:700; white-space:nowrap; display:flex; align-items:center; gap:5px; }
+  .cdot { display:inline-block; width:9px; height:9px; border-radius:50%; flex-shrink:0; border:1px solid rgba(0,0,0,0.15); }
+  .badge { display:inline-block; padding:1px 5px; border-radius:3px; font-size:9px; font-weight:700; white-space:nowrap; }
+  .badge-out  { background:#e8f5e9; color:#2e7d32; }
+  .badge-good { background:#fff3e0; color:#bf360c; }
+  .bar-wrap { display:flex; align-items:center; gap:4px; justify-content:center; }
+  .na { color:#bbb; font-size:9.5px; }
+  .rank-badge { display:inline-block; padding:1px 6px; border-radius:3px; font-size:9.5px; font-weight:700; cursor:default; white-space:nowrap; }
+  .rank-01 { background:#4a148c; color:#fff; }
+  .rank-5  { background:#b71c1c; color:#fff; }
+  .rank-10 { background:#e65100; color:#fff; }
+  .rank-20 { background:#f9a825; color:#000; }
+  .rank-25 { background:#8d6e63; color:#fff; }
+
+  /* Research notes */
+  .notes-divider { margin:12px 0 8px; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.07em; color:#888; border-top:2px solid #ececec; padding-top:8px; }
+  .note-section { margin-bottom:10px; }
+  .note-section h5 { font-size:10.5px; font-weight:700; color:#1565c0; margin:0 0 3px; border-bottom:1px solid #e8f0fe; padding-bottom:2px; }
+  .note-section p { font-size:10px; color:#444; margin:2px 0 4px; line-height:1.5; }
+  .note-section ul { margin:2px 0 4px; padding-left:14px; }
+  .note-section li { font-size:10px; color:#444; margin-bottom:2px; line-height:1.45; }
+  .nt { font-size:9px; color:#bbb; margin-top:5px; line-height:1.4; }
+
+  #status { position:fixed; bottom:12px; right:12px; z-index:9999; background:white; border:1px solid #ddd; border-radius:6px; padding:6px 11px; font-size:11px; color:#555; box-shadow:0 1px 6px rgba(0,0,0,0.12); }
 </style>
 </head>
 <body>
 <div id="map"></div>
-<div id="status">⟳ Loading zones...</div>
+<div id="status">Loading zones…</div>
 
-<div id="legend">
-  <h2>Richmond Schools — Catchment Zones</h2>
+<div id="panel">
+  <div id="panel-header">
+    <div class="tab-bar">
+      <button class="tab-btn active" onclick="switchTab('catchment',this)">📍 Catchment</button>
+      <button class="tab-btn"        onclick="switchTab('academic',this)">📊 Academic &amp; Research</button>
+    </div>
+    <button id="panel-hide" onclick="togglePanel()">Hide</button>
+  </div>
 
-  <div class="section-title">Waldegrave (Fifth Cross Rd)</div>
-  <div class="row"><div class="swatch" style="background:#43a047"></div><span>2023 — 2,032 m</span></div>
-  <div class="row"><div class="swatch" style="background:#7b1fa2"></div><span>2025 — 1,935 m</span></div>
-  <div class="row"><div class="swatch" style="background:#1565c0"></div><span>2024 — 1,755 m</span></div>
-  <div class="row"><div class="swatch" style="background:#c62828"></div><span>2022 — 1,416 m</span></div>
+  <div id="panel-body">
 
-  <div class="section-title">Grey Court (Ham)</div>
-  <div class="row"><div class="swatch" style="background:#1b5e20"></div><span>~2,707 m (2024/25 avg)</span></div>
+    <!-- ═══ TAB 1: CATCHMENT ═══ -->
+    <div id="tab-catchment" class="tab-content active">
 
-  <div class="section-title">Teddington School</div>
-  <div class="row"><div class="swatch-dashed" style="border-color:#e65100"></div><span>~5,611 m (2025)</span></div>
+      <div class="catch-school">
+        <div class="catch-title"><span class="cdot-lg" style="background:#c62828"></span>Waldegrave — Fifth Cross Rd, Twickenham TW2 5LH</div>
+        <table class="catch-table">
+          <tr><th>Year</th><th>Cut-off (GIS walking)</th><th>Zone</th></tr>
+          <tr><td>2022</td><td>1,416 m — tightest on record</td><td><span class="swatch" style="background:#c62828"></span></td></tr>
+          <tr><td>2023</td><td>2,032 m</td><td><span class="swatch" style="background:#43a047"></span></td></tr>
+          <tr><td>2024</td><td>1,755 m</td><td><span class="swatch" style="background:#1565c0"></span></td></tr>
+          <tr><td>2025</td><td>1,935 m</td><td><span class="swatch" style="background:#7b1fa2"></span></td></tr>
+        </table>
+        <p class="catch-note">Girls 11–16; co-ed sixth form (opened 2014). PAN 210. All distances are GIS walking-route, not straight-line.</p>
+      </div>
 
-  <div class="section-title">Markers</div>
-  <div class="row"><div class="dot" style="background:#c62828; color:#c62828"></div><span>Waldegrave gate</span></div>
-  <div class="row"><div class="dot" style="background:#1b5e20; color:#1b5e20"></div><span>Grey Court gate</span></div>
-  <div class="row"><div class="dot" style="background:#e65100; color:#e65100"></div><span>Teddington School gate</span></div>
-  <div class="row"><div class="dot" style="background:#0288d1; color:#0288d1"></div><span>Teddington Lock footbridge</span></div>
-</div>
+      <div class="catch-school">
+        <div class="catch-title"><span class="cdot-lg" style="background:#1b5e20"></span>Grey Court — Ham Street, Ham TW10 7HN</div>
+        <table class="catch-table">
+          <tr><th>Year</th><th>Cut-off (GIS walking)</th></tr>
+          <tr><td>2022</td><td>2,727 m</td></tr>
+          <tr><td>2023</td><td>2,992 m — furthest on record</td></tr>
+          <tr><td>2024</td><td>2,708 m</td></tr>
+          <tr><td>2025</td><td>2,706 m</td></tr>
+        </table>
+        <p class="catch-note">Mixed. PAN ~240. Teddington Lock footbridge (🔵) is key route from Twickenham — adds ~600 m vs road but saves significant time vs going via Kingston.</p>
+      </div>
 
-<div id="gc-table">
-  <h3>Grey Court — Distance Cut-offs</h3>
-  <table>
-    <tr><th>Year</th><th>Distance (m)</th><th class="bar-cell">Trend</th></tr>
-    <tr>
-      <td>2022</td><td>2,727</td>
-      <td><div class="bar-bg"><div class="bar-fill" style="width:91%"></div></div></td>
-    </tr>
-    <tr>
-      <td>2023</td><td>2,992</td>
-      <td><div class="bar-bg"><div class="bar-fill" style="width:100%"></div></div></td>
-    </tr>
-    <tr>
-      <td>2024</td><td>2,708</td>
-      <td><div class="bar-bg"><div class="bar-fill" style="width:90%"></div></div></td>
-    </tr>
-    <tr>
-      <td>2025</td><td>2,706</td>
-      <td><div class="bar-bg"><div class="bar-fill" style="width:90%"></div></div></td>
-    </tr>
-  </table>
-  <p style="font-size:10px;color:#888;margin:6px 0 0">Source: Richmond Council National Offer Day data</p>
-</div>
+      <div class="catch-school">
+        <div class="catch-title"><span class="cdot-lg" style="background:#00838f"></span>Orleans Park — Richmond Rd, Twickenham TW1 3BB</div>
+        <table class="catch-table">
+          <tr><th>Year</th><th>Cut-off (GIS walking)</th></tr>
+          <tr><td>2023</td><td>946 m</td></tr>
+          <tr><td>2024</td><td>1,241 m</td></tr>
+          <tr><td>2025</td><td>1,187 m</td></tr>
+        </table>
+        <p class="catch-note">Mixed. PAN 216. Very tight — under 1.2 km most years. Year group ~216.</p>
+      </div>
+
+      <div class="catch-school">
+        <div class="catch-title"><span class="cdot-lg" style="background:#6a1b9a"></span>Kingston Academy — Richmond Rd, Kingston KT2 5PE</div>
+        <table class="catch-table">
+          <tr><th>Year</th><th>Cut-off (GIS walking)</th></tr>
+          <tr><td>2023</td><td>1,031 m</td></tr>
+          <tr><td>2024</td><td>1,204 m ↑</td></tr>
+          <tr><td>2025</td><td>1,299 m ↑ (expanding)</td></tr>
+        </table>
+        <p class="catch-note">Mixed. PAN 210. Catchment growing annually as reputation builds. Two buildings (original + 2019 extension); entrance on Richmond Rd.</p>
+      </div>
+
+      <div class="catch-school">
+        <div class="catch-title"><span class="cdot-lg" style="background:#e65100"></span>Teddington — Broom Rd, Teddington TW11 9PJ</div>
+        <table class="catch-table">
+          <tr><th>Year</th><th>Cut-off (GIS walking)</th></tr>
+          <tr><td>2022</td><td>6,432 m</td></tr>
+          <tr><td>2023</td><td>5,907 m</td></tr>
+          <tr><td>2024</td><td>5,801 m</td></tr>
+          <tr><td>2025</td><td>5,611 m ↓</td></tr>
+        </table>
+        <p class="catch-note">Mixed. PAN 240. Large catchment = less oversubscribed; most local families get a place. Shown dashed on map.</p>
+      </div>
+
+      <p class="catch-note" style="margin-top:8px;border-top:1px solid #f0f0f0;padding-top:6px">Sources: LBR Notes to Parents following secondary allocations (2022–2025); RBK TSS furthest distance offers (2023–2025).</p>
+    </div>
+
+
+    <!-- ═══ TAB 2: ACADEMIC & RESEARCH ═══ -->
+    <div id="tab-academic" class="tab-content">
+
+      <table class="perf-table">
+        <tr>
+          <th>School</th><th>Ofsted</th><th>GCSE 9–7</th><th>A level A*–B</th>
+          <th title="National percentile band by GCSE 9–7 % among state secondaries in England (FindMySchool / LocaleIQ). Hover each badge for detail.">Nat. rank ▸</th>
+          <th>Roll</th><th>Type</th>
+        </tr>
+        <tr>
+          <td><div class="school-name"><span class="cdot" style="background:#c62828"></span>Waldegrave</div></td>
+          <td><span class="badge badge-out">Outstanding</span></td>
+          <td><div class="bar-wrap"><div style="width:53px;height:7px;background:#fce4e4;border-radius:2px;overflow:hidden"><div style="width:100%;height:100%;background:#c62828;border-radius:2px"></div></div><span>53%</span></div></td>
+          <td><div class="bar-wrap"><div style="width:78px;height:7px;background:#fce4e4;border-radius:2px;overflow:hidden"><div style="width:100%;height:100%;background:#c62828;border-radius:2px"></div></div><span>78%</span></div></td>
+          <td><span class="rank-badge rank-5" title="GCSE rank ~323rd of ~6,500 state secondaries (FindMySchool). Top 5% nationally.">top 5%</span></td>
+          <td>1,461</td><td class="na">Girls</td>
+        </tr>
+        <tr>
+          <td><div class="school-name"><span class="cdot" style="background:#1b5e20"></span>Grey Court</div></td>
+          <td><span class="badge badge-out">Outstanding</span></td>
+          <td><div class="bar-wrap"><div style="width:50px;height:7px;background:#e8f5e9;border-radius:2px;overflow:hidden"><div style="width:100%;height:100%;background:#1b5e20;border-radius:2px"></div></div><span>50%</span></div></td>
+          <td><div class="bar-wrap"><div style="width:69px;height:7px;background:#e8f5e9;border-radius:2px;overflow:hidden"><div style="width:100%;height:100%;background:#1b5e20;border-radius:2px"></div></div><span>69%</span></div></td>
+          <td><span class="rank-badge rank-10" title="GCSE rank ~441st of ~6,500 state secondaries (FindMySchool). Top 10% nationally. School claims 'top 5%' on combined attainment+progress composite.">top 10%</span></td>
+          <td>1,631</td><td class="na">Mixed</td>
+        </tr>
+        <tr>
+          <td><div class="school-name"><span class="cdot" style="background:#00838f"></span>Orleans Park</div></td>
+          <td><span class="badge badge-out">Outstanding</span></td>
+          <td><div class="bar-wrap"><div style="width:51px;height:7px;background:#e0f7fa;border-radius:2px;overflow:hidden"><div style="width:100%;height:100%;background:#00838f;border-radius:2px"></div></div><span>51%</span></div></td>
+          <td><div class="bar-wrap"><div style="width:68px;height:7px;background:#e0f7fa;border-radius:2px;overflow:hidden"><div style="width:100%;height:100%;background:#00838f;border-radius:2px"></div></div><span>68%</span></div></td>
+          <td><span class="rank-badge rank-10" title="GCSE rank ~437th of ~6,500 state secondaries (FindMySchool). Top 10% nationally.">top 10%</span></td>
+          <td>1,394</td><td class="na">Mixed</td>
+        </tr>
+        <tr>
+          <td><div class="school-name"><span class="cdot" style="background:#6a1b9a"></span>Kingston Ac.</div></td>
+          <td><span class="badge badge-out">Outstanding</span></td>
+          <td><div class="bar-wrap"><div style="width:44px;height:7px;background:#f3e5f5;border-radius:2px;overflow:hidden"><div style="width:100%;height:100%;background:#6a1b9a;border-radius:2px"></div></div><span>44%</span></div></td>
+          <td><div class="bar-wrap"><div style="width:56px;height:7px;background:#f3e5f5;border-radius:2px;overflow:hidden"><div style="width:100%;height:100%;background:#6a1b9a;border-radius:2px"></div></div><span>56%</span></div></td>
+          <td><span class="rank-badge rank-20" title="First GCSE cohort 2024 — attainment rank estimated ~top 20%. Progress 8 rank: top 0.5% nationally (32nd/6,500) — far better metric as it measures value-added from pupils' starting points.">~top 20%†</span></td>
+          <td>1,168</td><td class="na">Mixed</td>
+        </tr>
+        <tr>
+          <td><div class="school-name"><span class="cdot" style="background:#e65100"></span>Teddington</div></td>
+          <td><span class="badge badge-good">Good</span></td>
+          <td><div class="bar-wrap"><div style="width:36px;height:7px;background:#fbe9e7;border-radius:2px;overflow:hidden"><div style="width:100%;height:100%;background:#e65100;border-radius:2px"></div></div><span>36%</span></div></td>
+          <td><div class="bar-wrap"><div style="width:62px;height:7px;background:#fbe9e7;border-radius:2px;overflow:hidden"><div style="width:100%;height:100%;background:#e65100;border-radius:2px"></div></div><span>62%</span></div></td>
+          <td><span class="rank-badge rank-25" title="LocaleIQ composite: top 24% of state secondaries in England.">top 25%</span></td>
+          <td>1,381</td><td class="na">Mixed</td>
+        </tr>
+        <tr>
+          <td colspan="7" style="padding:4px 7px 2px;font-size:9px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:0.06em;border-top:2px solid #eee;background:#fafafa">── Selective grammar (reference only) ──</td>
+        </tr>
+        <tr style="background:#fffde7">
+          <td><div class="school-name"><span class="cdot" style="background:#f9a825;border:1px solid #f57f17"></span>Tiffin Girls</div></td>
+          <td><span class="badge badge-out">Outstanding</span></td>
+          <td><div class="bar-wrap"><div style="width:96px;height:7px;background:#fff9c4;border-radius:2px;overflow:hidden"><div style="width:100%;height:100%;background:#f9a825;border-radius:2px"></div></div><span>96%</span></div></td>
+          <td><div class="bar-wrap"><div style="width:94px;height:7px;background:#fff9c4;border-radius:2px;overflow:hidden"><div style="width:100%;height:100%;background:#f9a825;border-radius:2px"></div></div><span>94%</span></div></td>
+          <td><span class="rank-badge rank-01" title="Top 3 in UK for GCSE attainment. Selective grammar — not comparable to non-selective schools.">top 0.1%</span></td>
+          <td>~1,200</td><td class="na">Girls</td>
+        </tr>
+      </table>
+
+      <p class="nt">† Kingston: Progress 8 rank top 0.5% nationally (32nd/6,500) is the better measure — strips out intake advantage. Nat. rank = GCSE 9–7 % among state secondaries, England. All results most recent published year. Roll = Y7–Y13.</p>
+
+      <div class="notes-divider">📝 Research Notes</div>
+
+      <div class="note-section">
+        <h5>GCSE vs A-level national rankings</h5>
+        <p>A-level ranks differ markedly from GCSE. Waldegrave drops from top 5% (GCSE) to top 20% (A-level, rank 486th); Grey Court top 10% → top 25% (554th); Orleans Park top 10% → top 25% (603rd). Three reasons: A-level ranking uses % A*/A not A*–B; sixth form cohorts are broader as external students join at 16; and for Waldegrave, only 50–60% of Year 11 girls stay on — top performers often leave for Tiffin Girls or Esher College.</p>
+      </div>
+
+      <div class="note-section">
+        <h5>University destinations — Russell Group vs top-third</h5>
+        <p>Russell Group (24 universities) is a self-selected lobbying group, not a quality benchmark. The DfE is dropping it from official accountability measures. More meaningful alternatives: <b>Sutton Trust 30</b> (30 most selective universities, includes Bath, St Andrews, Loughborough, Surrey, Lancaster, Royal Holloway — all non-RG); <b>DfE "top third"</b> (high tariff, based on entry UCAS points).</p>
+        <p><b>Grey Court</b> (Good Schools Guide): ~50% Russell Group but ~70% "top third" — a 20-point gap showing significant non-RG selective destinations (Exeter, Nottingham, Surrey etc.). <b>Orleans Park</b> 2025: 61% RG but Bath specifically named as a destination (not RG). <b>Waldegrave</b>: 48% RG (third-party only — school doesn't publish this). Given the arts/media catchment, key non-RG destinations include UAL (10th most selective UK university by offer rate, 48.4%), conservatoires, RADA, Guildhall, Bath, St Andrews, and University of Surrey (very local).</p>
+      </div>
+
+      <div class="note-section">
+        <h5>Where Waldegrave Year 11 girls go for A-levels</h5>
+        <p>Only 50–60% stay at Waldegrave's own sixth form. The rest go to:</p>
+        <ul>
+          <li><b>Tiffin Girls' School</b> — top academic draw for highest achievers (mainly 8s/9s at GCSE). Selective for sixth form entry.</li>
+          <li><b>Esher Sixth Form College</b> (Thames Ditton, ~20 min) — Outstanding Ofsted, 2,100 students, open access from grade 4+, 61% A*–B. Major draw for arts/creative students.</li>
+          <li><b>RuTC — Richmond upon Thames College</b> — 5-min walk from Waldegrave. 24 A-levels + vocational routes inc. Architecture, Fine Art, Music Technology. Results ~33% A*–B. Explicitly names Waldegrave among feeder schools.</li>
+          <li><b>Independent school sixth forms</b> — Hampton, Lady Eleanor Holles etc. for families pivoting to private sector at 16.</li>
+          <li><b>BRIT School</b> (Croydon) — performing arts; clear pipeline given Waldegrave's drama/music culture.</li>
+          <li><b>Ballet / specialist schools</b> — Royal Ballet Upper School, Elmhurst etc.</li>
+        </ul>
+        <p>Waldegrave's own sixth form recruits ~30% of places externally, partly offsetting the cream lost to Tiffin/Esher.</p>
+      </div>
+
+      <div class="note-section">
+        <h5>Kingston Academy — why A-level results look modest</h5>
+        <p>56% A*–B is above the national average of 47% but unremarkable-looking. The standout metric is Progress 8 — top 0.5% nationally (rank 32nd of ~6,500) — meaning pupils make dramatically above-average progress from their starting points. This is exceptional for a non-selective comprehensive serving a mixed-deprivation area. The sixth form is still relatively young and building its reputation.</p>
+      </div>
+
+      <div class="note-section">
+        <h5>Grey Court — most transparent on destinations</h5>
+        <p>Publishes full "Destinations 2025 — by university" and "by course" pages. Good Schools Guide confirms ~50% RG and ~70% "top third" with named destinations including Durham, Bristol, Exeter, Edinburgh, Imperial, UCL. Consistent Oxbridge places every cohort since sixth form opened (~2014). Medicine a particular strength.</p>
+      </div>
+
+      <div class="note-section">
+        <h5>Key sources</h5>
+        <ul>
+          <li>Catchment distances: LBR Notes to Parents 2022–2025; RBK TSS furthest distance offers 2023–2025</li>
+          <li>National rankings: FindMySchool.uk, LocaleIQ.co.uk</li>
+          <li>University destinations: Good Schools Guide reviews; school websites (Grey Court publishes full list)</li>
+          <li>Russell Group / Sutton Trust: Wikipedia, Sutton Trust reports, DfE accountability consultation 2024</li>
+          <li>Waldegrave Year 11 destinations: Good Schools Guide; RuTC website (names Waldegrave as feeder)</li>
+        </ul>
+      </div>
+
+    </div><!-- end tab-academic -->
+  </div><!-- end panel-body -->
+</div><!-- end panel -->
+
 
 <script>
-  // School coordinates (verified)
-  const WALDEGRAVE  = { lat: 51.439432, lng: -0.350996, label: 'Waldegrave School', color: '#c62828' };
-  const GREYCOURT   = { lat: 51.438869, lng: -0.312152, label: 'Grey Court School', color: '#1b5e20' };
-  const TEDDINGTON  = { lat: 51.423228, lng: -0.312457, label: 'Teddington School', color: '#e65100' };
-  const TEDD_LOCK   = { lat: 51.430595, lng: -0.321622, label: 'Teddington Lock Footbridge', color: '#0288d1' };
+  function switchTab(name, btn) {
+    document.querySelectorAll('.tab-content').forEach(function(el){ el.classList.remove('active'); });
+    document.querySelectorAll('.tab-btn').forEach(function(el){ el.classList.remove('active'); });
+    document.getElementById('tab-'+name).classList.add('active');
+    btn.classList.add('active');
+  }
+  function togglePanel() {
+    var body = document.getElementById('panel-body');
+    var btn  = document.getElementById('panel-hide');
+    if (body.style.display === 'none') { body.style.display = ''; btn.textContent = 'Hide'; }
+    else { body.style.display = 'none'; btn.textContent = 'Show'; }
+  }
 
-  const map = L.map('map').setView([51.435, -0.335], 13);
+  var WALDEGRAVE  = { lat:51.439432, lng:-0.350996, label:'Waldegrave School',        color:'#c62828' };
+  var GREYCOURT   = { lat:51.438869, lng:-0.312152, label:'Grey Court School',         color:'#1b5e20' };
+  var ORLEANS     = { lat:51.450974, lng:-0.319062, label:'Orleans Park School',       color:'#00838f' };
+  var KINGSTON_AC = { lat:51.423334, lng:-0.301809, label:'The Kingston Academy',      color:'#6a1b9a' };
+  var TEDDINGTON  = { lat:51.423228, lng:-0.312457, label:'Teddington School',         color:'#e65100' };
+  var TEDD_LOCK   = { lat:51.430595, lng:-0.321622, label:'Teddington Lock Footbridge',color:'#0288d1' };
 
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-    attribution: '© OpenStreetMap © CARTO',
-    subdomains: 'abcd',
-    maxZoom: 19
+  var map = L.map('map').setView([51.435,-0.328],13);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{
+    attribution:'© OpenStreetMap © CARTO', subdomains:'abcd', maxZoom:19
   }).addTo(map);
 
-  const statusEl = document.getElementById('status');
+  var statusEl = document.getElementById('status');
 
-  // --- Waldegrave zones (largest first) ---
-  const waldegraveZones = [
-    { dist: 2032, color: '#43a047', fillOpacity: 0.09, weight: 2.0, popup: '<b>Waldegrave 2023: 2,032 m</b>' },
-    { dist: 1935, color: '#7b1fa2', fillOpacity: 0.11, weight: 2.0, popup: '<b>Waldegrave 2025: 1,935 m</b>' },
-    { dist: 1755, color: '#1565c0', fillOpacity: 0.12, weight: 2.0, popup: '<b>Waldegrave 2024: 1,755 m</b>' },
-    { dist: 1416, color: '#c62828', fillOpacity: 0.14, weight: 2.0, popup: '<b>Waldegrave 2022: 1,416 m</b><br>Tightest year' },
+  var waldegraveZones = [
+    {dist:2032,color:'#43a047',fillOpacity:0.09,weight:2.0,popup:'<b>Waldegrave 2023: 2,032 m</b><br>Outstanding | GCSE 9-7: 53% | A*-B: 78% | Girls'},
+    {dist:1935,color:'#7b1fa2',fillOpacity:0.11,weight:2.0,popup:'<b>Waldegrave 2025: 1,935 m</b><br>Outstanding | GCSE 9-7: 53% | A*-B: 78% | Girls'},
+    {dist:1755,color:'#1565c0',fillOpacity:0.12,weight:2.0,popup:'<b>Waldegrave 2024: 1,755 m</b><br>Outstanding | GCSE 9-7: 53% | A*-B: 78% | Girls'},
+    {dist:1416,color:'#c62828',fillOpacity:0.14,weight:2.0,popup:'<b>Waldegrave 2022: 1,416 m</b> — tightest on record<br>Outstanding | GCSE 9-7: 53% | Girls'},
   ];
+  var greyCourt  = {dist:2707,color:'#1b5e20',fillOpacity:0.10,weight:2.5,popup:'<b>Grey Court School</b><br>~2,707 m (2024/25 avg)<br>Outstanding | GCSE 9-7: 50% | A*-B: 69% | Mixed'};
+  var orleans    = {dist:1187,color:'#00838f',fillOpacity:0.13,weight:2.5,popup:'<b>Orleans Park School</b><br>1,187 m (2025)<br>Outstanding | GCSE 9-7: 51% | A*-B: 68% | Mixed'};
+  var kingstonAc = {dist:1299,color:'#6a1b9a',fillOpacity:0.13,weight:2.5,popup:'<b>The Kingston Academy</b><br>2023: 1,031 m → 2024: 1,204 m → 2025: 1,299 m<br>Outstanding | GCSE 9-7: 44% | P8 +1.10 🏆 top 0.5% nationally | Mixed'};
+  var teddington = {dist:5611,color:'#e65100',fillOpacity:0.04,weight:2.0,dash:'8,6',popup:'<b>Teddington School</b><br>5,611 m (2025) — large catchment<br>Good | GCSE 9-7: 36% | A*-B: 62% | Mixed'};
 
-  // Grey Court — use 2024/25 average (~2,707m)
-  const greyCourt = { dist: 2707, color: '#1b5e20', fillOpacity: 0.10, weight: 2.5,
-    popup: '<b>Grey Court School</b><br>~2,707 m (2024/25 cut-off)<br>Ham Street, Ham TW10 7HN' };
-
-  // Teddington — 2025 cut-off 5,611m — shown as dashed outline only (too large to fill meaningfully)
-  const teddington = { dist: 5611, color: '#e65100', fillOpacity: 0.04, weight: 2.0, dash: '8,6',
-    popup: '<b>Teddington School</b><br>5,611 m cut-off (2025)<br>Broom Road, Teddington TW11 9PJ<br><i>Large catchment — not heavily oversubscribed</i>' };
-
-  function makeMarker(school) {
-    return L.circleMarker([school.lat, school.lng], {
-      radius: 9, fillColor: school.color, color: '#fff', weight: 2.5, fillOpacity: 1, zIndexOffset: 9999
-    }).bindPopup(`<b>${school.label}</b>`);
+  function makeMarker(s) {
+    return L.circleMarker([s.lat,s.lng],{radius:9,fillColor:s.color,color:'#fff',weight:2.5,fillOpacity:1,zIndexOffset:9999}).bindPopup('<b>'+s.label+'</b>');
   }
-
   function makeLockMarker() {
-    return L.circleMarker([TEDD_LOCK.lat, TEDD_LOCK.lng], {
-      radius: 7, fillColor: '#0288d1', color: '#fff', weight: 2, fillOpacity: 1
-    }).bindPopup('<b>Teddington Lock Footbridge</b><br>Key walking route to Grey Court<br>from the Twickenham/Teddington side');
+    return L.circleMarker([TEDD_LOCK.lat,TEDD_LOCK.lng],{radius:7,fillColor:'#0288d1',color:'#fff',weight:2,fillOpacity:1}).bindPopup('<b>Teddington Lock Footbridge</b><br>Key walking route to Grey Court from Twickenham side');
   }
-
-  async function tryValhalla(lat, lng, distKm) {
-    const params = encodeURIComponent(JSON.stringify({
-      locations: [{ lon: lng, lat }],
-      costing: 'pedestrian',
-      contours: [{ distance: distKm }],
-      polygons: true
-    }));
-    const res = await fetch(`https://valhalla1.openstreetmap.de/isochrone?json=${params}`);
-    if (!res.ok) throw new Error(`Valhalla ${res.status}`);
-    return res.json();
+  async function tryORS(lat,lng,distM) {
+    var r = await fetch('https://api.openrouteservice.org/v2/isochrones/foot-walking',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'5b3ce3597851110001cf6248a8e9f73f574e42f09c53e6e2b89eba17'},body:JSON.stringify({locations:[[lng,lat]],range:[distM],range_type:'distance',units:'m'})});
+    if(!r.ok) throw new Error('ORS');
+    return r.json();
   }
-
-  async function tryORS(lat, lng, distM) {
-    const res = await fetch('https://api.openrouteservice.org/v2/isochrones/foot-walking', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json',
-        'Authorization': '5b3ce3597851110001cf6248a8e9f73f574e42f09c53e6e2b89eba17' },
-      body: JSON.stringify({ locations: [[lng, lat]], range: [distM], range_type: 'distance', units: 'm' })
-    });
-    if (!res.ok) throw new Error(`ORS ${res.status}`);
-    return res.json();
+  async function tryValhalla(lat,lng,distKm) {
+    var p=encodeURIComponent(JSON.stringify({locations:[{lon:lng,lat:lat}],costing:'pedestrian',contours:[{distance:distKm}],polygons:true}));
+    var r=await fetch('https://valhalla1.openstreetmap.de/isochrone?json='+p);
+    if(!r.ok) throw new Error('Valhalla');
+    return r.json();
   }
-
-  function drawCircle(lat, lng, zone) {
-    return L.circle([lat, lng], {
-      radius: zone.dist, color: zone.color, weight: zone.weight, opacity: 0.85,
-      dashArray: zone.dash || null, fillColor: zone.color, fillOpacity: zone.fillOpacity
-    }).addTo(map).bindPopup(zone.popup + '<br><i>(approximate radius)</i>');
+  function drawCircle(lat,lng,zone) {
+    return L.circle([lat,lng],{radius:zone.dist,color:zone.color,weight:zone.weight,opacity:0.85,dashArray:zone.dash||null,fillColor:zone.color,fillOpacity:zone.fillOpacity}).addTo(map).bindPopup(zone.popup+'<br><i>(approximate radius)</i>');
   }
-
-  async function loadZone(lat, lng, zone, label) {
-    statusEl.textContent = `⟳ Loading ${label}...`;
-    try {
-      const data = await tryValhalla(lat, lng, zone.dist / 1000);
-      return L.geoJSON(data, { style: {
-        color: zone.color, weight: zone.weight, opacity: 0.85,
-        dashArray: zone.dash || null, fillColor: zone.color, fillOpacity: zone.fillOpacity
-      }}).addTo(map).bindPopup(zone.popup);
-    } catch {
-      try {
-        const data = await tryORS(lat, lng, zone.dist);
-        return L.geoJSON(data, { style: {
-          color: zone.color, weight: zone.weight, opacity: 0.85,
-          dashArray: zone.dash || null, fillColor: zone.color, fillOpacity: zone.fillOpacity
-        }}).addTo(map).bindPopup(zone.popup);
-      } catch {
-        return drawCircle(lat, lng, zone);
-      }
-    }
+  async function loadZone(lat,lng,zone,label) {
+    statusEl.textContent='Loading '+label+'…';
+    try { var d=await tryORS(lat,lng,zone.dist); return L.geoJSON(d,{style:{color:zone.color,weight:zone.weight,opacity:0.85,dashArray:zone.dash||null,fillColor:zone.color,fillOpacity:zone.fillOpacity}}).addTo(map).bindPopup(zone.popup); } catch(e){}
+    try { var d2=await tryValhalla(lat,lng,zone.dist/1000); return L.geoJSON(d2,{style:{color:zone.color,weight:zone.weight,opacity:0.85,dashArray:zone.dash||null,fillColor:zone.color,fillOpacity:zone.fillOpacity}}).addTo(map).bindPopup(zone.popup); } catch(e2){ return drawCircle(lat,lng,zone); }
   }
-
-  const sleep = ms => new Promise(r => setTimeout(r, ms));
-
+  var sleep=ms=>new Promise(r=>setTimeout(r,ms));
   async function loadAll() {
-    // Draw Teddington first (biggest, behind everything)
-    await loadZone(TEDDINGTON.lat, TEDDINGTON.lng, teddington, 'Teddington School');
-    await sleep(1200);
-
-    // Draw Grey Court
-    await loadZone(GREYCOURT.lat, GREYCOURT.lng, greyCourt, 'Grey Court');
-    await sleep(1200);
-
-    // Draw Waldegrave zones largest→smallest
-    for (const z of waldegraveZones) {
-      await loadZone(WALDEGRAVE.lat, WALDEGRAVE.lng, z, `Waldegrave ${z.popup}`);
-      await sleep(1200);
+    await loadZone(GREYCOURT.lat,GREYCOURT.lng,greyCourt,'Grey Court');   await sleep(2000);
+    await loadZone(TEDDINGTON.lat,TEDDINGTON.lng,teddington,'Teddington'); await sleep(2000);
+    await loadZone(KINGSTON_AC.lat,KINGSTON_AC.lng,kingstonAc,'Kingston'); await sleep(2000);
+    await loadZone(ORLEANS.lat,ORLEANS.lng,orleans,'Orleans Park');        await sleep(2000);
+    for(var i=0;i<waldegraveZones.length;i++){
+      await loadZone(WALDEGRAVE.lat,WALDEGRAVE.lng,waldegraveZones[i],'Waldegrave '+waldegraveZones[i].dist+'m');
+      await sleep(2000);
     }
-
-    // Add school markers on top
-    makeMarker(WALDEGRAVE).addTo(map);
-    makeMarker(GREYCOURT).addTo(map);
-    makeMarker(TEDDINGTON).addTo(map);
+    [WALDEGRAVE,GREYCOURT,ORLEANS,KINGSTON_AC,TEDDINGTON].forEach(s=>makeMarker(s).addTo(map));
     makeLockMarker().addTo(map);
-
-    statusEl.textContent = '✓ All zones loaded';
-    statusEl.style.color = '#2e7d32';
-    setTimeout(() => statusEl.style.display = 'none', 3000);
+    statusEl.textContent='All zones loaded ✓';
+    statusEl.style.color='#2e7d32';
+    setTimeout(()=>{statusEl.style.display='none';},3000);
   }
-
   loadAll();
 </script>
 </body>
