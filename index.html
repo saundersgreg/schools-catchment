@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Richmond Schools — Catchment Zones</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; font-family: Arial, sans-serif; }
+  #map { width: 100%; height: 100vh; }
+
+  #legend {
+    position: fixed;
+    top: 12px;
+    left: 12px;
+    z-index: 9999;
+    background: white;
+    border-radius: 8px;
+    padding: 14px 16px;
+    box-shadow: 0 2px 14px rgba(0,0,0,0.2);
+    font-size: 12px;
+    line-height: 1.85;
+    min-width: 230px;
+    max-width: 250px;
+    border: 1px solid #ddd;
+  }
+  #legend h2 {
+    margin: 0 0 10px;
+    font-size: 13px;
+    font-weight: bold;
+    border-bottom: 2px solid #333;
+    padding-bottom: 6px;
+  }
+  .section-title {
+    font-size: 11px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #555;
+    margin: 8px 0 4px;
+  }
+  .row { display: flex; align-items: center; gap: 8px; margin-bottom: 2px; }
+  .dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; border: 2px solid #fff; box-shadow: 0 0 0 1.5px #888; }
+  .swatch { flex-shrink: 0; width: 24px; height: 4px; border-radius: 2px; }
+  .swatch-dashed { flex-shrink: 0; width: 24px; height: 0; border-top: 2.5px dashed; border-radius: 2px; }
+
+  /* Grey Court table */
+  #gc-table {
+    position: fixed;
+    bottom: 12px;
+    right: 12px;
+    z-index: 9999;
+    background: white;
+    border-radius: 8px;
+    padding: 12px 14px;
+    box-shadow: 0 2px 14px rgba(0,0,0,0.2);
+    font-size: 12px;
+    border: 1px solid #ddd;
+    min-width: 200px;
+  }
+  #gc-table h3 {
+    margin: 0 0 8px;
+    font-size: 12px;
+    font-weight: bold;
+    color: #1b5e20;
+    border-bottom: 2px solid #1b5e20;
+    padding-bottom: 5px;
+  }
+  #gc-table table { border-collapse: collapse; width: 100%; }
+  #gc-table th { text-align: left; font-size: 11px; color: #666; padding: 2px 6px; }
+  #gc-table td { padding: 3px 6px; font-size: 12px; }
+  #gc-table tr:nth-child(even) { background: #f5f5f5; }
+  .bar-cell { width: 80px; }
+  .bar-bg { background: #e8f5e9; border-radius: 3px; height: 12px; overflow: hidden; }
+  .bar-fill { background: #43a047; height: 100%; border-radius: 3px; }
+
+  #status {
+    position: fixed;
+    bottom: 12px;
+    left: 12px;
+    z-index: 9999;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 7px 12px;
+    font-size: 11px;
+    color: #555;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.12);
+  }
+</style>
+</head>
+<body>
+<div id="map"></div>
+<div id="status">⟳ Loading zones...</div>
+
+<div id="legend">
+  <h2>Richmond Schools — Catchment Zones</h2>
+
+  <div class="section-title">Waldegrave (Fifth Cross Rd)</div>
+  <div class="row"><div class="swatch" style="background:#43a047"></div><span>2023 — 2,032 m</span></div>
+  <div class="row"><div class="swatch" style="background:#7b1fa2"></div><span>2025 — 1,935 m</span></div>
+  <div class="row"><div class="swatch" style="background:#1565c0"></div><span>2024 — 1,755 m</span></div>
+  <div class="row"><div class="swatch" style="background:#c62828"></div><span>2022 — 1,416 m</span></div>
+
+  <div class="section-title">Grey Court (Ham)</div>
+  <div class="row"><div class="swatch" style="background:#1b5e20"></div><span>~2,707 m (2024/25 avg)</span></div>
+
+  <div class="section-title">Teddington School</div>
+  <div class="row"><div class="swatch-dashed" style="border-color:#e65100"></div><span>~5,611 m (2025)</span></div>
+
+  <div class="section-title">Markers</div>
+  <div class="row"><div class="dot" style="background:#c62828; color:#c62828"></div><span>Waldegrave gate</span></div>
+  <div class="row"><div class="dot" style="background:#1b5e20; color:#1b5e20"></div><span>Grey Court gate</span></div>
+  <div class="row"><div class="dot" style="background:#e65100; color:#e65100"></div><span>Teddington School gate</span></div>
+  <div class="row"><div class="dot" style="background:#0288d1; color:#0288d1"></div><span>Teddington Lock footbridge</span></div>
+</div>
+
+<div id="gc-table">
+  <h3>Grey Court — Distance Cut-offs</h3>
+  <table>
+    <tr><th>Year</th><th>Distance (m)</th><th class="bar-cell">Trend</th></tr>
+    <tr>
+      <td>2022</td><td>2,727</td>
+      <td><div class="bar-bg"><div class="bar-fill" style="width:91%"></div></div></td>
+    </tr>
+    <tr>
+      <td>2023</td><td>2,992</td>
+      <td><div class="bar-bg"><div class="bar-fill" style="width:100%"></div></div></td>
+    </tr>
+    <tr>
+      <td>2024</td><td>2,708</td>
+      <td><div class="bar-bg"><div class="bar-fill" style="width:90%"></div></div></td>
+    </tr>
+    <tr>
+      <td>2025</td><td>2,706</td>
+      <td><div class="bar-bg"><div class="bar-fill" style="width:90%"></div></div></td>
+    </tr>
+  </table>
+  <p style="font-size:10px;color:#888;margin:6px 0 0">Source: Richmond Council National Offer Day data</p>
+</div>
+
+<script>
+  // School coordinates (verified)
+  const WALDEGRAVE  = { lat: 51.439432, lng: -0.350996, label: 'Waldegrave School', color: '#c62828' };
+  const GREYCOURT   = { lat: 51.438869, lng: -0.312152, label: 'Grey Court School', color: '#1b5e20' };
+  const TEDDINGTON  = { lat: 51.423228, lng: -0.312457, label: 'Teddington School', color: '#e65100' };
+  const TEDD_LOCK   = { lat: 51.430595, lng: -0.321622, label: 'Teddington Lock Footbridge', color: '#0288d1' };
+
+  const map = L.map('map').setView([51.435, -0.335], 13);
+
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+    attribution: '© OpenStreetMap © CARTO',
+    subdomains: 'abcd',
+    maxZoom: 19
+  }).addTo(map);
+
+  const statusEl = document.getElementById('status');
+
+  // --- Waldegrave zones (largest first) ---
+  const waldegraveZones = [
+    { dist: 2032, color: '#43a047', fillOpacity: 0.09, weight: 2.0, popup: '<b>Waldegrave 2023: 2,032 m</b>' },
+    { dist: 1935, color: '#7b1fa2', fillOpacity: 0.11, weight: 2.0, popup: '<b>Waldegrave 2025: 1,935 m</b>' },
+    { dist: 1755, color: '#1565c0', fillOpacity: 0.12, weight: 2.0, popup: '<b>Waldegrave 2024: 1,755 m</b>' },
+    { dist: 1416, color: '#c62828', fillOpacity: 0.14, weight: 2.0, popup: '<b>Waldegrave 2022: 1,416 m</b><br>Tightest year' },
+  ];
+
+  // Grey Court — use 2024/25 average (~2,707m)
+  const greyCourt = { dist: 2707, color: '#1b5e20', fillOpacity: 0.10, weight: 2.5,
+    popup: '<b>Grey Court School</b><br>~2,707 m (2024/25 cut-off)<br>Ham Street, Ham TW10 7HN' };
+
+  // Teddington — 2025 cut-off 5,611m — shown as dashed outline only (too large to fill meaningfully)
+  const teddington = { dist: 5611, color: '#e65100', fillOpacity: 0.04, weight: 2.0, dash: '8,6',
+    popup: '<b>Teddington School</b><br>5,611 m cut-off (2025)<br>Broom Road, Teddington TW11 9PJ<br><i>Large catchment — not heavily oversubscribed</i>' };
+
+  function makeMarker(school) {
+    return L.circleMarker([school.lat, school.lng], {
+      radius: 9, fillColor: school.color, color: '#fff', weight: 2.5, fillOpacity: 1, zIndexOffset: 9999
+    }).bindPopup(`<b>${school.label}</b>`);
+  }
+
+  function makeLockMarker() {
+    return L.circleMarker([TEDD_LOCK.lat, TEDD_LOCK.lng], {
+      radius: 7, fillColor: '#0288d1', color: '#fff', weight: 2, fillOpacity: 1
+    }).bindPopup('<b>Teddington Lock Footbridge</b><br>Key walking route to Grey Court<br>from the Twickenham/Teddington side');
+  }
+
+  async function tryValhalla(lat, lng, distKm) {
+    const params = encodeURIComponent(JSON.stringify({
+      locations: [{ lon: lng, lat }],
+      costing: 'pedestrian',
+      contours: [{ distance: distKm }],
+      polygons: true
+    }));
+    const res = await fetch(`https://valhalla1.openstreetmap.de/isochrone?json=${params}`);
+    if (!res.ok) throw new Error(`Valhalla ${res.status}`);
+    return res.json();
+  }
+
+  async function tryORS(lat, lng, distM) {
+    const res = await fetch('https://api.openrouteservice.org/v2/isochrones/foot-walking', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json',
+        'Authorization': '5b3ce3597851110001cf6248a8e9f73f574e42f09c53e6e2b89eba17' },
+      body: JSON.stringify({ locations: [[lng, lat]], range: [distM], range_type: 'distance', units: 'm' })
+    });
+    if (!res.ok) throw new Error(`ORS ${res.status}`);
+    return res.json();
+  }
+
+  function drawCircle(lat, lng, zone) {
+    return L.circle([lat, lng], {
+      radius: zone.dist, color: zone.color, weight: zone.weight, opacity: 0.85,
+      dashArray: zone.dash || null, fillColor: zone.color, fillOpacity: zone.fillOpacity
+    }).addTo(map).bindPopup(zone.popup + '<br><i>(approximate radius)</i>');
+  }
+
+  async function loadZone(lat, lng, zone, label) {
+    statusEl.textContent = `⟳ Loading ${label}...`;
+    try {
+      const data = await tryValhalla(lat, lng, zone.dist / 1000);
+      return L.geoJSON(data, { style: {
+        color: zone.color, weight: zone.weight, opacity: 0.85,
+        dashArray: zone.dash || null, fillColor: zone.color, fillOpacity: zone.fillOpacity
+      }}).addTo(map).bindPopup(zone.popup);
+    } catch {
+      try {
+        const data = await tryORS(lat, lng, zone.dist);
+        return L.geoJSON(data, { style: {
+          color: zone.color, weight: zone.weight, opacity: 0.85,
+          dashArray: zone.dash || null, fillColor: zone.color, fillOpacity: zone.fillOpacity
+        }}).addTo(map).bindPopup(zone.popup);
+      } catch {
+        return drawCircle(lat, lng, zone);
+      }
+    }
+  }
+
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+  async function loadAll() {
+    // Draw Teddington first (biggest, behind everything)
+    await loadZone(TEDDINGTON.lat, TEDDINGTON.lng, teddington, 'Teddington School');
+    await sleep(1200);
+
+    // Draw Grey Court
+    await loadZone(GREYCOURT.lat, GREYCOURT.lng, greyCourt, 'Grey Court');
+    await sleep(1200);
+
+    // Draw Waldegrave zones largest→smallest
+    for (const z of waldegraveZones) {
+      await loadZone(WALDEGRAVE.lat, WALDEGRAVE.lng, z, `Waldegrave ${z.popup}`);
+      await sleep(1200);
+    }
+
+    // Add school markers on top
+    makeMarker(WALDEGRAVE).addTo(map);
+    makeMarker(GREYCOURT).addTo(map);
+    makeMarker(TEDDINGTON).addTo(map);
+    makeLockMarker().addTo(map);
+
+    statusEl.textContent = '✓ All zones loaded';
+    statusEl.style.color = '#2e7d32';
+    setTimeout(() => statusEl.style.display = 'none', 3000);
+  }
+
+  loadAll();
+</script>
+</body>
+</html>
