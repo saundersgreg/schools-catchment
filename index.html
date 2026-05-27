@@ -326,25 +326,68 @@
   function makeLockMarker() {
     return L.circleMarker([TEDD_LOCK.lat,TEDD_LOCK.lng],{radius:7,fillColor:'#0288d1',color:'#fff',weight:2,fillOpacity:1}).bindPopup('<b>Teddington Lock Footbridge</b><br>Key walking route to Grey Court from Twickenham side');
   }
-  async function tryORS(lat,lng,distM) {
-    var r = await fetch('https://api.openrouteservice.org/v2/isochrones/foot-walking',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'5b3ce3597851110001cf6248a8e9f73f574e42f09c53e6e2b89eba17'},body:JSON.stringify({locations:[[lng,lat]],range:[distM],range_type:'distance',units:'m'})});
-    if(!r.ok) throw new Error('ORS');
-    return r.json();
+  async function tryORS(lat, lng, distM) {
+  const r = await fetch('https://api.openrouteservice.org/v2/isochrones/foot-walking', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': '5b3ce3597851110001cf6248a8e9f73f574e42f09c53e6e2b89eba17' },
+    body: JSON.stringify({ locations: [[lng, lat]], range: [distM], range_type: 'distance', units: 'm' })
+  });
+  if (!r.ok) throw new Error('ORS ' + r.status);
+  return r.json();
+}
+
+async function tryValhalla(lat, lng, distKm) {
+  const p = encodeURIComponent(JSON.stringify({
+    locations: [{ lon: lng, lat: lat }],
+    costing: 'pedestrian',
+    contours: [{ distance: distKm }],
+    polygons: true
+  }));
+  // Fixed URL — valhalla1 was decommissioned
+  const r = await fetch('https://valhalla.openstreetmap.de/isochrone?json=' + p);
+  if (!r.ok) throw new Error('Valhalla ' + r.status);
+  return r.json();
+}
+function withTimeout(promise, ms) {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), ms))
+  ]);
+}
+
+function drawCircle(lat, lng, zone) {
+  return L.circle([lat, lng], {
+    radius: zone.dist, color: zone.color, weight: zone.weight,
+    opacity: 0.85, dashArray: zone.dash || null,
+    fillColor: zone.color, fillOpacity: zone.fillOpacity
+  }).addTo(map).bindPopup(zone.popup + '<br><i>(radius approximation)</i>');
+}
+ async function loadZone(lat, lng, zone, label) {
+  statusEl.textContent = 'Loading ' + label + '…';
+  // Draw circle immediately — guaranteed to show something
+  const circle = drawCircle(lat, lng, zone);
+
+  try {
+    const d = await withTimeout(tryORS(lat, lng, zone.dist), 8000);
+    circle.remove();
+    return L.geoJSON(d, {
+      style: { color: zone.color, weight: zone.weight, opacity: 0.85,
+               dashArray: zone.dash || null, fillColor: zone.color, fillOpacity: zone.fillOpacity }
+    }).addTo(map).bindPopup(zone.popup);
+  } catch(e) {}
+
+  try {
+    const d2 = await withTimeout(tryValhalla(lat, lng, zone.dist / 1000), 8000);
+    circle.remove();
+    return L.geoJSON(d2, {
+      style: { color: zone.color, weight: zone.weight, opacity: 0.85,
+               dashArray: zone.dash || null, fillColor: zone.color, fillOpacity: zone.fillOpacity }
+    }).addTo(map).bindPopup(zone.popup);
+  } catch(e2) {
+    // Circle stays — that's fine
+    return circle;
   }
-  async function tryValhalla(lat,lng,distKm) {
-    var p=encodeURIComponent(JSON.stringify({locations:[{lon:lng,lat:lat}],costing:'pedestrian',contours:[{distance:distKm}],polygons:true}));
-    var r=await fetch('https://valhalla1.openstreetmap.de/isochrone?json='+p);
-    if(!r.ok) throw new Error('Valhalla');
-    return r.json();
-  }
-  function drawCircle(lat,lng,zone) {
-    return L.circle([lat,lng],{radius:zone.dist,color:zone.color,weight:zone.weight,opacity:0.85,dashArray:zone.dash||null,fillColor:zone.color,fillOpacity:zone.fillOpacity}).addTo(map).bindPopup(zone.popup+'<br><i>(approximate radius)</i>');
-  }
-  async function loadZone(lat,lng,zone,label) {
-    statusEl.textContent='Loading '+label+'…';
-    try { var d=await tryORS(lat,lng,zone.dist); return L.geoJSON(d,{style:{color:zone.color,weight:zone.weight,opacity:0.85,dashArray:zone.dash||null,fillColor:zone.color,fillOpacity:zone.fillOpacity}}).addTo(map).bindPopup(zone.popup); } catch(e){}
-    try { var d2=await tryValhalla(lat,lng,zone.dist/1000); return L.geoJSON(d2,{style:{color:zone.color,weight:zone.weight,opacity:0.85,dashArray:zone.dash||null,fillColor:zone.color,fillOpacity:zone.fillOpacity}}).addTo(map).bindPopup(zone.popup); } catch(e2){ return drawCircle(lat,lng,zone); }
-  }
+}
   var sleep=ms=>new Promise(r=>setTimeout(r,ms));
   async function loadAll() {
     await loadZone(GREYCOURT.lat,GREYCOURT.lng,greyCourt,'Grey Court');   await sleep(2000);
