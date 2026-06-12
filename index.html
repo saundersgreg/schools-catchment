@@ -66,6 +66,23 @@
 <div id="map"></div>
 <div id="status" style="position:fixed;bottom:12px;right:12px;z-index:9999;background:white;border:1px solid #ddd;border-radius:6px;padding:6px 11px;font-size:11px;color:#555;box-shadow:0 1px 6px rgba(0,0,0,.12)">Loading zones…</div>
 
+<!-- School selector -->
+<div id="selector" style="position:fixed;top:12px;right:12px;z-index:9999;background:white;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,.18);border:1px solid #ddd;padding:8px 10px">
+  <div style="font-size:9.5px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Show / Hide</div>
+  <div style="display:flex;flex-direction:column;gap:5px">
+    <button id="btn-W"  onclick="toggleSchool('W')"  style="display:flex;align-items:center;gap:7px;border:1px solid #e0e0e0;border-radius:5px;padding:4px 10px;cursor:pointer;background:#fff;font-size:11px;font-weight:600;text-align:left">
+      <span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#c62828;flex-shrink:0"></span>Waldegrave</button>
+    <button id="btn-GC" onclick="toggleSchool('GC')" style="display:flex;align-items:center;gap:7px;border:1px solid #e0e0e0;border-radius:5px;padding:4px 10px;cursor:pointer;background:#fff;font-size:11px;font-weight:600;text-align:left">
+      <span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#1b5e20;flex-shrink:0"></span>Grey Court</button>
+    <button id="btn-OP" onclick="toggleSchool('OP')" style="display:flex;align-items:center;gap:7px;border:1px solid #e0e0e0;border-radius:5px;padding:4px 10px;cursor:pointer;background:#fff;font-size:11px;font-weight:600;text-align:left">
+      <span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#00838f;flex-shrink:0"></span>Orleans Park</button>
+    <button id="btn-KA" onclick="toggleSchool('KA')" style="display:flex;align-items:center;gap:7px;border:1px solid #e0e0e0;border-radius:5px;padding:4px 10px;cursor:pointer;background:#fff;font-size:11px;font-weight:600;text-align:left">
+      <span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#6a1b9a;flex-shrink:0"></span>Kingston Ac.</button>
+    <button id="btn-TE" onclick="toggleSchool('TE')" style="display:flex;align-items:center;gap:7px;border:1px solid #e0e0e0;border-radius:5px;padding:4px 10px;cursor:pointer;background:#fff;font-size:11px;font-weight:600;text-align:left">
+      <span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#e65100;flex-shrink:0"></span>Teddington</button>
+  </div>
+</div>
+
 <div id="panel">
   <div id="panel-header">
     <div class="tab-bar">
@@ -82,10 +99,10 @@
         <div class="catch-title"><span class="cdot-lg" style="background:#c62828"></span>Waldegrave — Fifth Cross Rd, Twickenham TW2 5LH</div>
         <table class="catch-table">
           <tr><th>Year</th><th>Cut-off (GIS walking)</th><th>Zone</th></tr>
-          <tr><td>2022</td><td>1,416 m — tightest on record</td><td><span class="swatch" style="background:#c62828"></span></td></tr>
-          <tr><td>2023</td><td>2,032 m</td><td><span class="swatch" style="background:#43a047"></span></td></tr>
-          <tr><td>2024</td><td>1,755 m</td><td><span class="swatch" style="background:#1565c0"></span></td></tr>
-          <tr><td>2025</td><td>1,935 m</td><td><span class="swatch" style="background:#7b1fa2"></span></td></tr>
+          <tr><td>2022</td><td>1,416 m — tightest on record</td><td><span class="swatch" style="background:#7f0000"></span></td></tr>
+          <tr><td>2023</td><td>2,032 m</td><td><span class="swatch" style="background:#ef9a9a"></span></td></tr>
+          <tr><td>2024</td><td>1,755 m</td><td><span class="swatch" style="background:#c62828"></span></td></tr>
+          <tr><td>2025</td><td>1,935 m</td><td><span class="swatch" style="background:#e53935"></span></td></tr>
         </table>
         <p class="catch-note">Girls 11–16; co-ed sixth form (opened 2014). PAN 210. All distances GIS walking-route, not straight-line.</p>
       </div>
@@ -93,9 +110,9 @@
         <div class="catch-title"><span class="cdot-lg" style="background:#1b5e20"></span>Grey Court — Ham Street, Ham TW10 7HN</div>
         <table class="catch-table">
           <tr><th>Year</th><th>Cut-off (GIS walking)</th><th>Zone</th></tr>
-          <tr><td>2022</td><td>2,727 m</td><td><span class="swatch" style="background:#c62828"></span></td></tr>
-          <tr><td>2023</td><td>2,992 m — furthest on record</td><td><span class="swatch" style="background:#43a047"></span></td></tr>
-          <tr><td>2024</td><td>2,708 m</td><td><span class="swatch" style="background:#1565c0"></span></td></tr>
+          <tr><td>2022</td><td>2,727 m</td><td><span class="swatch" style="background:#43a047"></span></td></tr>
+          <tr><td>2023</td><td>2,992 m — furthest on record</td><td><span class="swatch" style="background:#a5d6a7"></span></td></tr>
+          <tr><td>2024</td><td>2,708 m</td><td><span class="swatch" style="background:#2e7d32"></span></td></tr>
           <tr><td>2025</td><td>2,706 m</td><td><span class="swatch" style="background:#1b5e20"></span></td></tr>
         </table>
         <p class="catch-note">Mixed. PAN ~240. Teddington Lock footbridge (🔵) is key route from Twickenham side.</p>
@@ -259,9 +276,26 @@ var KA={lat:51.423334,lng:-0.301809,label:'The Kingston Academy'};
 var TE={lat:51.423228,lng:-0.312457,label:'Teddington School'};
 var TL={lat:51.430595,lng:-0.321622,label:'Teddington Lock Footbridge'};
 
-function marker(s,color){
-  return L.circleMarker([s.lat,s.lng],{radius:9,fillColor:color,color:'#fff',weight:2.5,fillOpacity:1,zIndexOffset:9999})
+// School groups — layers stored here for toggle
+var schoolLayers={W:[],GC:[],OP:[],KA:[],TE:[]};
+var schoolVisible={W:true,GC:true,OP:true,KA:true,TE:true};
+
+function toggleSchool(key){
+  schoolVisible[key]=!schoolVisible[key];
+  schoolLayers[key].forEach(function(l){
+    if(schoolVisible[key]) map.addLayer(l);
+    else map.removeLayer(l);
+  });
+  var btn=document.getElementById('btn-'+key);
+  btn.style.opacity=schoolVisible[key]?'1':'0.35';
+  btn.style.textDecoration=schoolVisible[key]?'none':'line-through';
+}
+
+function marker(s,color,key){
+  var m=L.circleMarker([s.lat,s.lng],{radius:9,fillColor:color,color:'#fff',weight:2.5,fillOpacity:1,zIndexOffset:9999})
     .bindPopup('<b>'+s.label+'</b>').addTo(map);
+  if(key) schoolLayers[key].push(m);
+  return m;
 }
 function drawCircle(lat,lng,z){
   return L.circle([lat,lng],{radius:z.dist,color:z.color,weight:z.weight,opacity:.85,
@@ -289,47 +323,56 @@ async function tryValhalla(lat,lng,distKm){
   if(!r.ok) throw new Error('Valhalla '+r.status);
   return r.json();
 }
-async function loadZone(z,label){
-  statusEl.textContent='Loading '+label+'…';
+async function loadZone(z,key){
+  statusEl.textContent='Loading '+z.popup.match(/<b>(.*?)<\/b>/)[1]+'…';
   const circle=drawCircle(z.lat,z.lng,z);
+  schoolLayers[key].push(circle);
+  var final=circle;
   try{
     const d=await withTimeout(tryORS(z.lat,z.lng,z.dist),9000);
     circle.remove();
-    return L.geoJSON(d,{style:geoStyle(z)}).addTo(map).bindPopup(z.popup);
+    schoolLayers[key]=schoolLayers[key].filter(l=>l!==circle);
+    final=L.geoJSON(d,{style:geoStyle(z)}).addTo(map).bindPopup(z.popup);
+    schoolLayers[key].push(final);
+    return final;
   }catch(e){}
   try{
     const d2=await withTimeout(tryValhalla(z.lat,z.lng,z.dist/1000),9000);
     circle.remove();
-    return L.geoJSON(d2,{style:geoStyle(z)}).addTo(map).bindPopup(z.popup);
+    schoolLayers[key]=schoolLayers[key].filter(l=>l!==circle);
+    final=L.geoJSON(d2,{style:geoStyle(z)}).addTo(map).bindPopup(z.popup);
+    schoolLayers[key].push(final);
+    return final;
   }catch(e2){ return circle; }
 }
 var sleep=ms=>new Promise(r=>setTimeout(r,ms));
 
-// Zone definitions
+// Zone definitions — each school uses shades of its own colour
+// Waldegrave: reds — lightest=2023 (biggest), darkest=2022 (smallest/tightest)
+// Grey Court: greens — same logic
 var zones=[
-  // Waldegrave 4 years
-  {lat:W.lat,lng:W.lng,dist:2032,color:'#43a047',weight:2,fillOp:.08,dash:null,popup:'<b>Waldegrave 2023: 2,032 m</b><br>Outstanding | GCSE 9-7: 53% | A*-B: 78% | Girls'},
-  {lat:W.lat,lng:W.lng,dist:1935,color:'#7b1fa2',weight:2,fillOp:.10,dash:null,popup:'<b>Waldegrave 2025: 1,935 m</b><br>Outstanding | GCSE 9-7: 53% | A*-B: 78% | Girls'},
-  {lat:W.lat,lng:W.lng,dist:1755,color:'#1565c0',weight:2,fillOp:.11,dash:null,popup:'<b>Waldegrave 2024: 1,755 m</b><br>Outstanding | GCSE 9-7: 53% | A*-B: 78% | Girls'},
-  {lat:W.lat,lng:W.lng,dist:1416,color:'#c62828',weight:2,fillOp:.13,dash:null,popup:'<b>Waldegrave 2022: 1,416 m</b> — tightest on record<br>Outstanding | Girls'},
-  // Grey Court 4 years
-  {lat:GC.lat,lng:GC.lng,dist:2992,color:'#43a047',weight:2,fillOp:.07,dash:null,popup:'<b>Grey Court 2023: 2,992 m</b> — furthest on record<br>Outstanding | GCSE 9-7: 50% | A*-B: 69% | Mixed'},
-  {lat:GC.lat,lng:GC.lng,dist:2727,color:'#c62828',weight:2,fillOp:.08,dash:null,popup:'<b>Grey Court 2022: 2,727 m</b><br>Outstanding | GCSE 9-7: 50% | A*-B: 69% | Mixed'},
-  {lat:GC.lat,lng:GC.lng,dist:2708,color:'#1565c0',weight:2,fillOp:.09,dash:null,popup:'<b>Grey Court 2024: 2,708 m</b><br>Outstanding | GCSE 9-7: 50% | A*-B: 69% | Mixed'},
-  {lat:GC.lat,lng:GC.lng,dist:2706,color:'#1b5e20',weight:2,fillOp:.10,dash:null,popup:'<b>Grey Court 2025: 2,706 m</b><br>Outstanding | GCSE 9-7: 50% | A*-B: 69% | Mixed'},
-  // Other schools
-  {lat:OP.lat,lng:OP.lng,dist:1187,color:'#00838f',weight:2.5,fillOp:.12,dash:null,popup:'<b>Orleans Park</b><br>1,187 m (2025)<br>Outstanding | GCSE 9-7: 51% | A*-B: 68% | Mixed'},
-  {lat:KA.lat,lng:KA.lng,dist:1299,color:'#6a1b9a',weight:2.5,fillOp:.12,dash:null,popup:'<b>Kingston Academy</b><br>1,299 m (2025) — expanding<br>Outstanding | GCSE 9-7: 44% | P8 +1.10 🏆 | Mixed'},
-  {lat:TE.lat,lng:TE.lng,dist:5611,color:'#e65100',weight:2,fillOp:.04,dash:'8,6',popup:'<b>Teddington</b><br>5,611 m (2025)<br>Good | GCSE 9-7: 36% | A*-B: 62% | Mixed'},
+  {key:'W',lat:W.lat,lng:W.lng,dist:2032,color:'#ef9a9a',weight:1.5,fillOp:.10,dash:null,popup:'<b>Waldegrave 2023: 2,032 m</b><br>Outstanding | GCSE 9-7: 53% | A*-B: 78% | Girls'},
+  {key:'W',lat:W.lat,lng:W.lng,dist:1935,color:'#e53935',weight:2,fillOp:.12,dash:null,popup:'<b>Waldegrave 2025: 1,935 m</b><br>Outstanding | GCSE 9-7: 53% | A*-B: 78% | Girls'},
+  {key:'W',lat:W.lat,lng:W.lng,dist:1755,color:'#c62828',weight:2,fillOp:.14,dash:null,popup:'<b>Waldegrave 2024: 1,755 m</b><br>Outstanding | GCSE 9-7: 53% | A*-B: 78% | Girls'},
+  {key:'W',lat:W.lat,lng:W.lng,dist:1416,color:'#7f0000',weight:2.5,fillOp:.18,dash:null,popup:'<b>Waldegrave 2022: 1,416 m</b> — tightest on record<br>Outstanding | Girls'},
+
+  {key:'GC',lat:GC.lat,lng:GC.lng,dist:2992,color:'#a5d6a7',weight:1.5,fillOp:.09,dash:null,popup:'<b>Grey Court 2023: 2,992 m</b> — furthest on record<br>Outstanding | GCSE 9-7: 50% | A*-B: 69% | Mixed'},
+  {key:'GC',lat:GC.lat,lng:GC.lng,dist:2727,color:'#43a047',weight:2,fillOp:.11,dash:null,popup:'<b>Grey Court 2022: 2,727 m</b><br>Outstanding | GCSE 9-7: 50% | A*-B: 69% | Mixed'},
+  {key:'GC',lat:GC.lat,lng:GC.lng,dist:2708,color:'#2e7d32',weight:2,fillOp:.13,dash:null,popup:'<b>Grey Court 2024: 2,708 m</b><br>Outstanding | GCSE 9-7: 50% | A*-B: 69% | Mixed'},
+  {key:'GC',lat:GC.lat,lng:GC.lng,dist:2706,color:'#1b5e20',weight:2.5,fillOp:.15,dash:null,popup:'<b>Grey Court 2025: 2,706 m</b><br>Outstanding | GCSE 9-7: 50% | A*-B: 69% | Mixed'},
+
+  {key:'OP',lat:OP.lat,lng:OP.lng,dist:1187,color:'#00838f',weight:2.5,fillOp:.15,dash:null,popup:'<b>Orleans Park 2025: 1,187 m</b><br>Outstanding | GCSE 9-7: 51% | A*-B: 68% | Mixed'},
+  {key:'KA',lat:KA.lat,lng:KA.lng,dist:1299,color:'#6a1b9a',weight:2.5,fillOp:.15,dash:null,popup:'<b>Kingston Academy 2025: 1,299 m</b><br>Outstanding | GCSE 9-7: 44% | P8 +1.10 🏆 | Mixed'},
+  {key:'TE',lat:TE.lat,lng:TE.lng,dist:5611,color:'#e65100',weight:2,fillOp:.05,dash:'8,6',popup:'<b>Teddington 2025: 5,611 m</b><br>Good | GCSE 9-7: 36% | A*-B: 62% | Mixed'},
 ];
 
 async function loadAll(){
   for(var i=0;i<zones.length;i++){
-    await loadZone(zones[i], zones[i].popup.match(/<b>(.*?)<\/b>/)[1]);
+    await loadZone(zones[i],zones[i].key);
     await sleep(1200);
   }
-  marker(W,'#c62828'); marker(GC,'#1b5e20'); marker(OP,'#00838f');
-  marker(KA,'#6a1b9a'); marker(TE,'#e65100');
+  marker(W,'#c62828','W'); marker(GC,'#1b5e20','GC'); marker(OP,'#00838f','OP');
+  marker(KA,'#6a1b9a','KA'); marker(TE,'#e65100','TE');
   L.circleMarker([TL.lat,TL.lng],{radius:7,fillColor:'#0288d1',color:'#fff',weight:2,fillOpacity:1})
     .bindPopup('<b>Teddington Lock Footbridge</b><br>Key walking route to Grey Court from Twickenham').addTo(map);
   statusEl.textContent='All zones loaded ✓';
